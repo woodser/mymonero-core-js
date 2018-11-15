@@ -52,5 +52,6 @@ exports.bridgedFn_names =
 	"send_step1__prepare_params_for_get_decoys",
 	"send_step2__try_create_transaction",
 	"json_to_binary",
-	"binary_to_json"
+	"binary_to_json",
+	"binary_blocks_to_json"
 ];

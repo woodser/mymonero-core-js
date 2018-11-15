@@ -620,10 +620,17 @@ class MyMoneroCoreBridge
 			tx_key: ret.tx_key
 		};
 	}
+	
+	/**
+	 * Converts the given JSON to a binary Uint8Array using Monero's portable storage format.
+	 * 
+	 * @param json is the json to convert to binary
+	 * @returns Uint8Array is the json converted to portable storage binary
+	 */
 	json_to_binary(json) {
     
     // serialize json to binary which is stored in c++ heap
-    let binMemInfoStr = this.Module.malloc_binary_from_json(JSON.stringify(json));  // TODO: need to de-allocate binary memory
+    let binMemInfoStr = this.Module.malloc_binary_from_json(JSON.stringify(json));  // TODO: need to de-allocate binary memory or heap or memory leak
     
     // sanitize binary memory address info
     let binMemInfo = JSON.parse(binMemInfoStr);
@@ -637,6 +644,13 @@ class MyMoneroCoreBridge
     }
     return view;
   }
+	
+	/**
+	 * Converts the given portable storage binary to JSON.
+	 * 
+	 *  @param uint8arr is a Uint8Array with binary data in Monero's portable storage format
+	 *  @returns a JSON object converted from the binary data
+	 */
   binary_to_json(uint8arr) {
     
     // allocate space in c++ heap for binary
@@ -655,7 +669,32 @@ class MyMoneroCoreBridge
     // parse and return json
     return JSON.parse(ret_string);
   }
+  
+  /**
+   * Converts the binary response from daemon RPC block retrieval to JSON.
+   * 
+   * @param uint8arr is the binary response from daemon RPC when getting blocks
+   * @returns a JSON object with the blocks data
+   */
+  binary_blocks_to_json(uint8arr) {
+    
+    // allocate space in c++ heap for binary
+    let ptr = this.Module._malloc(uint8arr.length * uint8arr.BYTES_PER_ELEMENT);  // TODO: this needs deleted
+    let heap = new Uint8Array(this.Module.HEAPU8.buffer, ptr, uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
+    
+    // write binary to heap
+    heap.set(new Uint8Array(uint8arr.buffer));  // TODO: can we pass uint8arr directly without new here?
+    
+    // create object with binary memory address info
+    let binMemInfo = { ptr: ptr, length: uint8arr.length  }
 
+    // convert binary to json str
+    const ret_string = this.Module.binary_blocks_to_json(JSON.stringify(binMemInfo));
+    console.log("binary_blocks_to_json json response: " + ret_string);
+    
+    // parse and return json
+    return JSON.parse(ret_string);
+  }
 }
 //
 module.exports = function(options)
