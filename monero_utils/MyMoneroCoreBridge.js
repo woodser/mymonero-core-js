@@ -363,6 +363,7 @@ class MyMoneroCoreBridge
 		}
 		return ret.retVal;
 	}
+	
 	derive_public_key(derivation, out_index, pub)
 	{
 		const args =
@@ -379,102 +380,47 @@ class MyMoneroCoreBridge
 		}
 		return ret.retVal;
 	}
+	
 	json_to_binary(json) {
-    console.log("Bridge json_to_binary: ");
-    console.log(json);
-//    const args = {
-//      json: JSON.stringify(json)
-//    };
-//    const args_str = JSON.stringify(args);
+	  
+	  // serialize json to binary which is stored in c++ heap
     let binMemInfoStr = this.Module.json_to_binary(JSON.stringify(json));
+    
+    // sanitize binary memory address info
     let binMemInfo = JSON.parse(binMemInfoStr);
     binMemInfo.ptr = parseInt(binMemInfo.ptr);
     binMemInfo.length = parseInt(binMemInfo.length);
-    console.log("Binary info: ");
-    console.log(binMemInfo);
     
-    
-//    for (let ptr = 0; ptr < 1200000; ptr++) {
-//      let view = new Uint8Array(binMemInfo.length);
-//      for (let i = 0; i < binMemInfo.length; i++) {
-//        view[i] = this.Module.HEAPU8[ptr / Uint8Array.BYTES_PER_ELEMENT + i];
-//      }
-//      let utf8 = new TextEncoding.TextDecoder().decode(view);
-//      if (utf8 === "Hello there!") {
-//        console.log("We found a winning pointer!");
-//        console.log(ptr);
-//        //binMemInfo.ptr = ptr;
-//      }
-//    }
-    
+    // read binary data from heap to Uin8Array
     let view = new Uint8Array(binMemInfo.length);
     for (let i = 0; i < binMemInfo.length; i++) {
       view[i] = this.Module.HEAPU8[binMemInfo.ptr / Uint8Array.BYTES_PER_ELEMENT + i];
     }
-    //let utf8 = new TextEncoding.TextDecoder().decode(view);
-    //console.log("View as UTF8:\n" + utf8);
+    
+    // TODO: de-allocate binary memory
     
     return view;
-    //console.log(buffer);
-    
-    
-    
-//    let arr = []
-//    for (let i = 0; i < binaryAddress.length; i++) {
-//      arr.push(this.Module.HEAPU8[binaryAddress.address / Uint8Array.BYTES_PER_ELEMENT + i]);
-//    }
-//    console.log("Wait what");
-//    console.log(arr);
-    
-    
-    // TODO: get array buffer
-    
-    //return binaryAddressStr;  // TODO: create array buffer from pointer info
-//    const ret_string = this.Module.json_to_binary(args_str);
-//    const ret = JSON.parse(ret_string);
-//    if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-//      return { err_msg: ret.err_msg };
-//    }
-//    return ret.retVal;
   }
+	
   binary_to_json(uint8arr) {
-    console.log("Bridge binary_to_json: " + uint8arr);
+    
+    // allocate space in c++ heap for binary
+    let ptr = this.Module._malloc(uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
+    let heap = new Uint8Array(this.Module.HEAPU8.buffer, ptr, uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
+    
+    // write binary to heap
+    heap.set(new Uint8Array(uint8arr.buffer));
+    
+    // create object with binary memory address info
+    let binMemInfo = { ptr: ptr, length: uint8arr.length  }
 
-    // allocate space in the heap for the buffer
-    let dataPtr = this.Module._malloc(uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
+    // convert binary to json str
+    const ret_string = this.Module.binary_to_json(JSON.stringify(binMemInfo));
     
-    var dataHeap = new Uint8Array(this.Module.HEAPU8.buffer, dataPtr, uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
-    dataHeap.set(new Uint8Array(uint8arr.buffer));
-    
-    // assign the data to the heap
-    //this.Module.HEAPU8.set(uint8arr, buffer >> 2);
-    
-    console.log("Data pointer: " + dataPtr);
-    console.log("Data heap offset: " + dataHeap.byteOffset);
-    console.log("uint8arr.length: " + uint8arr.length);
-    
-    
-    let binMemInfo = {
-        ptr: dataPtr,
-        length: uint8arr.length
-    }
-    let binMemInfoStr = JSON.stringify(binMemInfo);
-    console.log("Sending to C++: " + binMemInfoStr);
-    
-    
-    
-    
-    
-    
-    
-    const ret_string = this.Module.binary_to_json(binMemInfoStr);
-    const ret = JSON.parse(ret_string);
-    return ret;
-//    if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-//      return { err_msg: ret.err_msg };
-//    }
-//    return ret.retVal;
+    // parse and return json
+    return JSON.parse(ret_string);
   }
+  
 	derive_subaddress_public_key(
 		output_key,
 		derivation,
