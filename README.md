@@ -96,7 +96,7 @@ Used extensively for managing Monero amounts in atomic units to ensure precision
 #### Examples
 
 ```
-const JSBigInt = require('../mymonero_core_js/cryptonote_utils/biginteger').BigInteger
+const JSBigInt = require('../mymonero-core-js/cryptonote_utils/biginteger').BigInteger
 const amount = new JSBigInt('12300000')
 const amount_str = monero_amount_format_utils.formatMoney(amount)
 ```
@@ -159,8 +159,8 @@ One of the arguments to `SendFunds`, `preSuccess_nonTerminal_statusUpdate_fn`, s
 #### Examples
 
 ```
-const mymonero = require("mymonero_core_js/index");
-// or just "mymonero_core_js/monero_utils/monero_utils"
+const mymonero = require("mymonero-core-js/index");
+// or just "mymonero-core-js/monero_utils/monero_utils"
 async function foo()
 {
 	const monero_utils = await mymonero.monero_utils;
