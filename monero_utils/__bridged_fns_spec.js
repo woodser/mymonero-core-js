@@ -44,13 +44,13 @@ exports.bridgedFn_names =
 	"generate_key_image",
 	"generate_key_derivation",
 	"derive_public_key",
-	"json_to_binary",
-	"binary_to_json",
 	"derive_subaddress_public_key",
 	"decodeRct",
 	"estimate_rct_tx_size",
 	"calculate_fee",
 	"estimated_tx_network_fee",
 	"send_step1__prepare_params_for_get_decoys",
-	"send_step2__try_create_transaction"
+	"send_step2__try_create_transaction",
+	"json_to_binary",
+	"binary_to_json"
 ];

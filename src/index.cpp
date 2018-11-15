@@ -59,11 +59,11 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("generate_key_image", &serial_bridge::generate_key_image);
     emscripten::function("generate_key_derivation", &serial_bridge::generate_key_derivation);
     emscripten::function("derive_public_key", &serial_bridge::derive_public_key);
-    emscripten::function("json_to_binary", &serial_bridge::json_to_binary);
-    emscripten::function("binary_to_json", &serial_bridge::binary_to_json);
     emscripten::function("derive_subaddress_public_key", &serial_bridge::derive_subaddress_public_key);
     emscripten::function("decodeRct", &serial_bridge::decodeRct);
     //
+    emscripten::function("malloc_binary_from_json", &serial_bridge::malloc_binary_from_json);
+    emscripten::function("binary_to_json", &serial_bridge::binary_to_json);
 }
 extern "C"
 { // C -> JS
