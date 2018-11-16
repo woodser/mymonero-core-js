@@ -689,11 +689,13 @@ class MyMoneroCoreBridge
     let binMemInfo = { ptr: ptr, length: uint8arr.length  }
 
     // convert binary to json str
-    const ret_string = this.Module.binary_blocks_to_json(JSON.stringify(binMemInfo));
-    // console.log("binary_blocks_to_json json response: " + ret_string);
+    const json_str = this.Module.binary_blocks_to_json(JSON.stringify(binMemInfo));
     
-    // parse and return json
-    return JSON.parse(ret_string);
+    // parse result to json
+    let json = JSON.parse(json_str);                                          // parsing json gives arrays of block and tx strings
+    json.blocks = json.blocks.map(blockStr => JSON.parse(blockStr));          // replace block strings with parsed blocks
+    json.txs = json.txs.map(txs => txs ? txs.map(tx => JSON.parse(tx)) : []); // replace tx strings with parsed txs
+    return json;
   }
 }
 //
