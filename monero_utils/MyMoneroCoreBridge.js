@@ -690,7 +690,7 @@ class MyMoneroCoreBridge
 
     // convert binary to json str
     const ret_string = this.Module.binary_blocks_to_json(JSON.stringify(binMemInfo));
-    console.log("binary_blocks_to_json json response: " + ret_string);
+    // console.log("binary_blocks_to_json json response: " + ret_string);
     
     // parse and return json
     return JSON.parse(ret_string);
