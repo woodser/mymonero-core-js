@@ -38,6 +38,8 @@ set(
     #
     ${MYMONERO_CORE_CPP_SRC}/monero_address_utils.hpp
     ${MYMONERO_CORE_CPP_SRC}/monero_address_utils.cpp
+    ${MYMONERO_CORE_CPP_SRC}/monero_binary_utils.hpp
+    ${MYMONERO_CORE_CPP_SRC}/monero_binary_utils.cpp
     ${MYMONERO_CORE_CPP_SRC}/monero_paymentID_utils.hpp
     ${MYMONERO_CORE_CPP_SRC}/monero_paymentID_utils.cpp
     ${MYMONERO_CORE_CPP_SRC}/monero_key_image_utils.hpp
