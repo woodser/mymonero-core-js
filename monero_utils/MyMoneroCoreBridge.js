@@ -737,7 +737,7 @@ module.exports = function(options)
 				// have to check != "/" b/c webpack (I think) replaces __dirname
 				pathTo_cryptonoteUtilsDir = "file://" + __dirname + "/" // prepending "file://" because it's going to try to stream it
 			} else { // actual web browser
-				pathTo_cryptonoteUtilsDir = this_scriptDirectory + "/mymonero-core-js/monero_utils/" // this works for the MyMonero browser build, and is quite general, at least
+				pathTo_cryptonoteUtilsDir = this_scriptDirectory + "/submodules/mymonero-core-js/monero_utils/" // this works for the MyMonero browser build, and is quite general, at least
 			}
 			fullPath = pathTo_cryptonoteUtilsDir + filename
 		}
