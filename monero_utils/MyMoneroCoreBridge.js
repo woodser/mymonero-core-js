@@ -630,7 +630,7 @@ class MyMoneroCoreBridge
 	json_to_binary(json) {
     
     // serialize json to binary which is stored in c++ heap
-    let binMemInfoStr = this.Module.malloc_binary_from_json(JSON.stringify(json));  // TODO: need to de-allocate binary memory or heap or memory leak
+    let binMemInfoStr = this.Module.malloc_binary_from_json(JSON.stringify(json));
     
     // sanitize binary memory address info
     let binMemInfo = JSON.parse(binMemInfoStr);
@@ -642,6 +642,11 @@ class MyMoneroCoreBridge
     for (let i = 0; i < binMemInfo.length; i++) {
       view[i] = this.Module.HEAPU8[binMemInfo.ptr / Uint8Array.BYTES_PER_ELEMENT + i];
     }
+    
+    // free binary on heap
+    this.Module._free(binMemInfo.ptr);
+    
+    // return json from binary data
     return view;
   }
 	
@@ -666,6 +671,10 @@ class MyMoneroCoreBridge
     // convert binary to json str
     const ret_string = this.Module.binary_to_json(JSON.stringify(binMemInfo));
     
+    // free binary on heap
+    this.Module._free(heap.byteOffset);
+    this.Module._free(ptr);
+    
     // parse and return json
     return JSON.parse(ret_string);
   }
@@ -678,18 +687,24 @@ class MyMoneroCoreBridge
    */
   binary_blocks_to_json(uint8arr) {
     
+    //let startTime = +new Date();
+    
     // allocate space in c++ heap for binary
     let ptr = this.Module._malloc(uint8arr.length * uint8arr.BYTES_PER_ELEMENT);  // TODO: this needs deleted
     let heap = new Uint8Array(this.Module.HEAPU8.buffer, ptr, uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
     
     // write binary to heap
-    heap.set(new Uint8Array(uint8arr.buffer));  // TODO: can we pass uint8arr directly without new here?
+    heap.set(new Uint8Array(uint8arr.buffer));
     
     // create object with binary memory address info
     let binMemInfo = { ptr: ptr, length: uint8arr.length  }
 
     // convert binary to json str
     const json_str = this.Module.binary_blocks_to_json(JSON.stringify(binMemInfo));
+    
+    // free memory
+    this.Module._free(heap.byteOffset);
+    this.Module._free(ptr);
     
     // parse result to json
     let json = JSON.parse(json_str);                                          // parsing json gives arrays of block and tx strings
