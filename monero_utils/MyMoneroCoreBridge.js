@@ -647,7 +647,7 @@ class MyMoneroCoreBridge
     this.Module._free(binMemInfo.ptr);
     
     // return json from binary data
-    return view; 
+    return view;
   }
 	
 	/**
