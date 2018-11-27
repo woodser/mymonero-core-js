@@ -709,7 +709,7 @@ class MyMoneroCoreBridge
     // parse result to json
     let json = JSON.parse(json_str);                                          // parsing json gives arrays of block and tx strings
     json.blocks = json.blocks.map(blockStr => JSON.parse(blockStr));          // replace block strings with parsed blocks
-    json.txs = json.txs.map(txs => txs ? txs.map(tx => JSON.parse(tx.replace(",", "{") + "}")) : []); // replace tx strings with parsed txs
+    json.txs = json.txs.map(txs => txs ? txs.map(tx => JSON.parse(tx.replace(",", "{") + "}")) : []); // replace tx strings with parsed txs // TODO: more efficient way than this json manipulation?
     return json;
   }
 }
