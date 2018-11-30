@@ -55,7 +55,6 @@ if (ENVIRONMENT_IS_WEB) {
 	}
 	use_asmjs = hasWebAssembly != true
 }
-console.log("Using wasm: ", !use_asmjs)
 //
 const fn_names = require('./__bridged_fns_spec').bridgedFn_names;
 const moneroUtils_promise_fn = function(options)
