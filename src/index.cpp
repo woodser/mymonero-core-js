@@ -316,10 +316,6 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("malloc_binary_from_json", &serial_bridge::malloc_binary_from_json);
     emscripten::function("binary_to_json", &serial_bridge::binary_to_json);
     emscripten::function("binary_blocks_to_json", &serial_bridge::binary_blocks_to_json);
-<<<<<<< HEAD
-=======
-    //
->>>>>>> add binary calls to mymonero-core-js
 }
 extern "C"
 { // C -> JS
