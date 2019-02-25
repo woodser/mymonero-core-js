@@ -583,7 +583,7 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 			};
 		}
 	
-  /**
+	/**
    * Converts the given JSON to a binary Uint8Array using Monero's portable storage format.
    * 
    * @param json is the json to convert to binary
