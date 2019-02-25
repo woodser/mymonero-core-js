@@ -37,22 +37,6 @@ const nettype_utils = require("../cryptonote_utils/nettype");
 const MyMoneroCoreBridgeEssentialsClass = require('./MyMoneroCoreBridgeEssentialsClass')
 const MyMoneroBridge_utils = require('./MyMoneroBridge_utils')
 //
-function bridge_sanitized__spendable_out(raw__out)
-{
-	const sanitary__output = 
-	{
-		amount: raw__out.amount.toString(),
-		public_key: raw__out.public_key,
-		global_index: "" + raw__out.global_index,
-		index: "" + raw__out.index,
-		tx_pub_key: raw__out.tx_pub_key
-	};
-	if (raw__out.rct && typeof raw__out.rct !== 'undefined') {
-		sanitary__output.rct = raw__out.rct;
-	}
-	return sanitary__output;
-}
-//
 class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 {
 	constructor(this_Module)
@@ -135,7 +119,7 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 		const ret_string = this.Module.derivation_to_scalar(args_str);
 		const ret = JSON.parse(ret_string);
 		if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-			throw ret.err_msg;
+			return { err_msg: ret.err_msg };
 		}
 		return ret.retVal;
 	}
@@ -206,7 +190,7 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 				this_outPk_mask = this_outPk.mask; 
 			}
 			if (this_outPk_mask == null) {
-				throw "Couldn't locate outPk mask value";
+				return { err_msg: "Couldn't locate outPk mask value" }
 			}
 			outPk.push({
 				mask: this_outPk_mask
@@ -226,32 +210,12 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 		const ret_string = this.Module.decodeRctSimple(args_str);
 		const ret = JSON.parse(ret_string);
 		if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-			throw ret.err_msg;
+			return { err_msg: ret.err_msg }
 		}
 		return { // calling these out so as to provide a stable ret val interface
 			amount: ret.amount, // string
 			mask: ret.mask,
 		};
-	}
-	estimate_fee(args)
-	{
-		const args_str = JSON.stringify(args);
-		const ret_string = this.Module.estimate_fee(args_str);
-		const ret = JSON.parse(ret_string);
-		if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-			throw ret.err_msg;
-		}
-		return ret.retVal;
-	}
-	estimate_tx_weight(args)
-	{
-		const args_str = JSON.stringify(args);
-		const ret_string = this.Module.estimate_tx_weight(args_str);
-		const ret = JSON.parse(ret_string);
-		if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-			throw ret.err_msg;
-		}
-		return parseInt(ret.retVal, 10);
 	}
 	estimate_rct_tx_size(n_inputs, mixin, n_outputs, extra_size, bulletproof)
 	{
@@ -267,7 +231,7 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 		const ret_string = this.Module.estimate_rct_tx_size(args_str);
 		const ret = JSON.parse(ret_string);
 		if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-			throw ret.err_msg;
+			return { err_msg: ret.err_msg }
 		}
 		return parseInt(ret.retVal, 10);
 	}
@@ -355,17 +319,7 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 			fn_args.get_unspent_outs_fn(req_params, function(err_msg, res)
 			{
 				const args = self.__new_cb_args_with(task_id, err_msg, res);
-				const ret_string = self.Module.send_cb_I__got_unspent_outs(JSON.stringify(args))
-				const ret = JSON.parse(ret_string);
-				if (typeof ret.err_msg !== 'undefined' && ret.err_msg) { // this is actually an exception
-					self._cb_handlers__send_funds[self.__key_for_fromCpp__send_funds__error(task_id)]({ 
-						err_msg: ret.err_msg 
-					});
-					// ^-- this will clean up cb handlers too
-					return;
-				} else {
-					// TODO: assert Object.keys(ret).length == 0
-				}
+				self.Module.send_cb_I__got_unspent_outs(JSON.stringify(args))
 			});
 		};
 		self._cb_handlers__send_funds[self.__key_for_fromCpp__send_funds__get_random_outs(task_id)] = function(req_params)
@@ -376,17 +330,7 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 			fn_args.get_random_outs_fn(req_params, function(err_msg, res)
 			{
 				const args = self.__new_cb_args_with(task_id, err_msg, res);
-				const ret_string = self.Module.send_cb_II__got_random_outs(JSON.stringify(args))
-				const ret = JSON.parse(ret_string);
-				if (typeof ret.err_msg !== 'undefined' && ret.err_msg) { // this is actually an exception
-					self._cb_handlers__send_funds[self.__key_for_fromCpp__send_funds__error(task_id)]({ 
-						err_msg: ret.err_msg 
-					});
-					// ^-- this will clean up cb handlers too
-					return;
-				} else {
-					// TODO: assert Object.keys(ret).length == 0
-				}
+				self.Module.send_cb_II__got_random_outs(JSON.stringify(args))
 			});
 		};
 		self._cb_handlers__send_funds[self.__key_for_fromCpp__send_funds__submit_raw_tx(task_id)] = function(req_params)
@@ -394,17 +338,7 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 			fn_args.submit_raw_tx_fn(req_params, function(err_msg, res)
 			{
 				const args = self.__new_cb_args_with(task_id, err_msg, res);
-				const ret_string = self.Module.send_cb_III__submitted_tx(JSON.stringify(args))
-				const ret = JSON.parse(ret_string);
-				if (typeof ret.err_msg !== 'undefined' && ret.err_msg) { // this is actually an exception
-					self._cb_handlers__send_funds[self.__key_for_fromCpp__send_funds__error(task_id)]({ 
-						err_msg: ret.err_msg 
-					});
-					// ^-- this will clean up cb handlers too
-					return;
-				} else {
-					// TODO: assert Object.keys(ret).length == 0
-				}
+				self.Module.send_cb_III__submitted_tx(JSON.stringify(args))
 			})
 		};
 		self._cb_handlers__send_funds[self.__key_for_fromCpp__send_funds__status_update(task_id)] = function(params)
@@ -445,17 +379,7 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 			args.unlock_time = "" + fn_args.unlock_time; // bridge is expecting a string
 		}
 		const args_str = JSON.stringify(args, null, '')
-		const ret_string = this.Module.send_funds(args_str);
-		const ret = JSON.parse(ret_string);
-		if (typeof ret.err_msg !== 'undefined' && ret.err_msg) { // this is actually an exception
-			self._cb_handlers__send_funds[self.__key_for_fromCpp__send_funds__error(task_id)]({ 
-				err_msg: ret.err_msg 
-			});
-			// ^-- this will clean up cb handlers too
-			return;
-		} else {
-			// TODO: assert Object.keys(ret).length == 0
-		}
+		this.Module.send_funds(args_str);
 	}
 	encrypt_payment_id(payment_id, public_key, secret_key)
 	{
@@ -469,121 +393,12 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 		const ret_string = this.Module.encrypt_payment_id(args_str);
 		const ret = JSON.parse(ret_string);
 		if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-			throw ret.err_msg;
+			return { err_msg: ret.err_msg };
 		}
 		return ret.retVal;
 	}
-	send_step2__try_create_transaction( // send only IPC-safe vals - no JSBigInts
-			from_address_string,
-			sec_keys,
-			to_address_string,
-			using_outs,
-			mix_outs,
-			fake_outputs_count,
-			final_total_wo_fee,
-			change_amount,
-			fee_amount,
-			payment_id,
-			priority,
-			fee_per_b, // not kib - if fee_per_kb, /= 1024
-			fee_mask,
-			unlock_time,
-			nettype,
-			optl__fork_version
-		) {
-			unlock_time = unlock_time || 0;
-			mix_outs = mix_outs || [];
-			// NOTE: we also do this check in the C++... may as well remove it from here
-			if (mix_outs.length !== using_outs.length && fake_outputs_count !== 0) {
-				return { 
-					err_msg: "Wrong number of mix outs provided (" +
-						using_outs.length + " using_outs, " +
-						mix_outs.length + " mix outs)"
-				};
-			}
-			for (var i = 0; i < mix_outs.length; i++) {
-				if ((mix_outs[i].outputs || []).length < fake_outputs_count) {
-					return { err_msg: "Not enough outputs to mix with" };
-				}
-			}
-			//
-			// Now we need to convert all non-JSON-serializable objects such as JSBigInts to strings etc - not that there should be any!
-			// - and all numbers to strings - especially those which may be uint64_t on the receiving side
-			var sanitary__using_outs = [];
-			for (let i in using_outs) {
-				const sanitary__output = bridge_sanitized__spendable_out(using_outs[i])
-				sanitary__using_outs.push(sanitary__output);
-			}
-			var sanitary__mix_outs = [];
-			for (let i in mix_outs) {
-				const sanitary__mix_outs_and_amount =
-				{
-					amount: mix_outs[i].amount.toString(), // it should be a string, but in case it's not
-					outputs: [] 
-				};
-				if (mix_outs[i].outputs && typeof mix_outs[i].outputs !== 'undefined') {
-					for (let j in mix_outs[i].outputs) {
-						const sanitary__mix_out =
-						{
-							global_index: "" + mix_outs[i].outputs[j].global_index, // number to string
-							public_key: mix_outs[i].outputs[j].public_key
-						};
-						if (mix_outs[i].outputs[j].rct && typeof mix_outs[i].outputs[j].rct !== 'undefined') {
-							sanitary__mix_out.rct = mix_outs[i].outputs[j].rct;
-						}
-						sanitary__mix_outs_and_amount.outputs.push(sanitary__mix_out);
-					}
-				}
-				sanitary__mix_outs.push(sanitary__mix_outs_and_amount);
-			}
-			const args =
-			{
-				from_address_string: from_address_string,
-				sec_viewKey_string: sec_keys.view,
-				sec_spendKey_string: sec_keys.spend,
-				to_address_string: to_address_string,
-				final_total_wo_fee: final_total_wo_fee.toString(),
-				change_amount: change_amount.toString(),
-				fee_amount: fee_amount.toString(),
-				priority: "" + priority,
-				fee_per_b: fee_per_b.toString(),
-				fee_mask: fee_mask.toString(),
-				using_outs: sanitary__using_outs,
-				mix_outs: sanitary__mix_outs,
-				unlock_time: "" + unlock_time, // bridge is expecting a string
-				nettype_string: nettype_utils.nettype_to_API_string(nettype),
-			};
-			if (typeof payment_id !== "undefined" && payment_id) {
-				args.payment_id_string = payment_id;
-			}
-			if (typeof optl__fork_version !== "undefined" && optl__fork_version && optl__fork_version != "") {
-				args.fork_version = optl__fork_version.toString();
-			}
-			const args_str = JSON.stringify(args);
-			const ret_string = this.Module.send_step2__try_create_transaction(args_str);
-			const ret = JSON.parse(ret_string);
-			//
-			if (typeof ret.err_msg !== 'undefined' && ret.err_msg) {
-				return { err_msg: ret.err_msg, tx_must_be_reconstructed: false };
-			}
-			if (ret.tx_must_be_reconstructed == "true" || ret.tx_must_be_reconstructed == true) {
-				if (typeof ret.fee_actually_needed == 'undefined' || !ret.fee_actually_needed) {
-					throw "tx_must_be_reconstructed; expected non-nil fee_actually_needed"
-				}
-				return {
-					tx_must_be_reconstructed: ret.tx_must_be_reconstructed, // if true, re-do procedure from step1 except for requesting UnspentOuts (that can be done oncet)
-					fee_actually_needed: ret.fee_actually_needed // can be passed back to step1
-				}
-			}
-			return { // calling these out to set an interface
-				tx_must_be_reconstructed: false, // in case caller is not checking for nil
-				signed_serialized_tx: ret.serialized_signed_tx, // this name change should be fixed to serialized_signed_tx
-				tx_hash: ret.tx_hash,
-				tx_key: ret.tx_key
-			};
-		}
-		
-	/**
+	
+	 /**
    * Converts the given JSON to a binary Uint8Array using Monero's portable storage format.
    * 
    * @param json is the json to convert to binary
