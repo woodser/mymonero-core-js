@@ -68,6 +68,10 @@ EMSCRIPTEN_BINDINGS(my_module)
     emscripten::function("derivation_to_scalar", &serial_bridge::derivation_to_scalar);
     emscripten::function("encrypt_payment_id", &serial_bridge::encrypt_payment_id);
     //
+    emscripten::function("malloc_binary_from_json", &serial_bridge::malloc_binary_from_json);
+    emscripten::function("binary_to_json", &serial_bridge::binary_to_json);
+    emscripten::function("binary_blocks_to_json", &serial_bridge::binary_blocks_to_json);
+    //
 }
 extern "C"
 { // C -> JS
