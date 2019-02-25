@@ -615,8 +615,8 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
   /**
    * Converts the given portable storage binary to JSON.
    * 
-   *  @param uint8arr is a Uint8Array with binary data in Monero's portable storage format
-   *  @returns a JSON object converted from the binary data
+   * @param uint8arr is a Uint8Array with binary data in Monero's portable storage format
+   * @returns a JSON object converted from the binary data
    */
   binary_to_json(uint8arr) {
     
