@@ -582,6 +582,98 @@ class MyMoneroCoreBridgeClass extends MyMoneroCoreBridgeEssentialsClass
 				tx_key: ret.tx_key
 			};
 		}
+	
+  /**
+   * Converts the given JSON to a binary Uint8Array using Monero's portable storage format.
+   * 
+   * @param json is the json to convert to binary
+   * @returns Uint8Array is the json converted to portable storage binary
+   */
+  json_to_binary(json) {
+    
+    // serialize json to binary which is stored in c++ heap
+    let binMemInfoStr = this.Module.malloc_binary_from_json(JSON.stringify(json));
+    
+    // sanitize binary memory address info
+    let binMemInfo = JSON.parse(binMemInfoStr);
+    binMemInfo.ptr = parseInt(binMemInfo.ptr);
+    binMemInfo.length = parseInt(binMemInfo.length);
+    
+    // read binary data from heap to Uin8Array
+    let view = new Uint8Array(binMemInfo.length);
+    for (let i = 0; i < binMemInfo.length; i++) {
+      view[i] = this.Module.HEAPU8[binMemInfo.ptr / Uint8Array.BYTES_PER_ELEMENT + i];
+    }
+    
+    // free binary on heap
+    this.Module._free(binMemInfo.ptr);
+    
+    // return json from binary data
+    return view;
+  }
+  
+  /**
+   * Converts the given portable storage binary to JSON.
+   * 
+   *  @param uint8arr is a Uint8Array with binary data in Monero's portable storage format
+   *  @returns a JSON object converted from the binary data
+   */
+  binary_to_json(uint8arr) {
+    
+    // allocate space in c++ heap for binary
+    let ptr = this.Module._malloc(uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
+    let heap = new Uint8Array(this.Module.HEAPU8.buffer, ptr, uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
+    
+    // write binary to heap
+    heap.set(new Uint8Array(uint8arr.buffer));
+    
+    // create object with binary memory address info
+    let binMemInfo = { ptr: ptr, length: uint8arr.length  }
+
+    // convert binary to json str
+    const ret_string = this.Module.binary_to_json(JSON.stringify(binMemInfo));
+    
+    // free binary on heap
+    this.Module._free(heap.byteOffset);
+    this.Module._free(ptr);
+    
+    // parse and return json
+    return JSON.parse(ret_string);
+  }
+  
+  /**
+   * Converts the binary response from daemon RPC block retrieval to JSON.
+   * 
+   * @param uint8arr is the binary response from daemon RPC when getting blocks
+   * @returns a JSON object with the blocks data
+   */
+  binary_blocks_to_json(uint8arr) {
+    
+    //let startTime = +new Date();
+    
+    // allocate space in c++ heap for binary
+    let ptr = this.Module._malloc(uint8arr.length * uint8arr.BYTES_PER_ELEMENT);  // TODO: this needs deleted
+    let heap = new Uint8Array(this.Module.HEAPU8.buffer, ptr, uint8arr.length * uint8arr.BYTES_PER_ELEMENT);
+    
+    // write binary to heap
+    heap.set(new Uint8Array(uint8arr.buffer));
+    
+    // create object with binary memory address info
+    let binMemInfo = { ptr: ptr, length: uint8arr.length  }
+
+    // convert binary to json str
+    const json_str = this.Module.binary_blocks_to_json(JSON.stringify(binMemInfo));
+    
+    // free memory
+    this.Module._free(heap.byteOffset);
+    this.Module._free(ptr);
+    
+    // parse result to json
+    let json = JSON.parse(json_str);                                          // parsing json gives arrays of block and tx strings
+    json.blocks = json.blocks.map(blockStr => JSON.parse(blockStr));          // replace block strings with parsed blocks
+    json.txs = json.txs.map(txs => txs ? txs.map(tx => JSON.parse(tx.replace(",", "{") + "}")) : []); // replace tx strings with parsed txs // TODO: more efficient way than this json manipulation?
+    return json;
+  }
 }
 //
 module.exports = MyMoneroCoreBridgeClass;
